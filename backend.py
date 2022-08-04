@@ -5,8 +5,8 @@ import numpy as np
 from datetime import datetime
 from itertools import combinations
 from dateutil.relativedelta import relativedelta
-# import seaborn as sns
-# import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib.pyplot as plt
 from statsmodels.tsa.api import VAR
 from statsmodels.tsa.stattools import adfuller, coint
 from statsmodels.tsa.vector_ar.vecm import VECM, coint_johansen
@@ -16,7 +16,7 @@ from statsmodels.tsa.tsatools import *
 from statsmodels.tsa.adfvalues import *
 from statsmodels.regression.linear_model import *
 
-# import matplotlib.colors as mcolors
+import matplotlib.colors as mcolors
 
 
 class StationaryTest:
