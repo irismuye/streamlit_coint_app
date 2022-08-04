@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime
 from itertools import combinations
 from dateutil.relativedelta import relativedelta
-import seaborn as sns
+# import seaborn as sns
 import matplotlib.pyplot as plt
 from statsmodels.tsa.api import VAR
 from statsmodels.tsa.stattools import adfuller, coint
