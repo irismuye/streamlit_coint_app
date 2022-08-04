@@ -25,7 +25,7 @@ st.set_page_config(
 
 @st.experimental_memo
 def exchange_info():
-    exchange_info = requests.get('https://api.binance.com/api/v1/exchangeInfo').json()
+    exchange_info = requests.get('https://api.binance.com/fapi/v1/exchangeInfo').json()
     symbols = exchange_info["symbols"]
 
     return symbols
@@ -60,7 +60,7 @@ def get_bars(symbol, interval='1m'):
 def combine(interval, rank = 10):
     perps = []
     for symbol in symbols:
-        if symbol['contractType'] == 'PERPETUAL' and symbol['marginAsset'] == 'USDT' and symbol["status"] == "TRADING":
+        if symbol['contractType'] == 'PERPETUAL' and symbol['quoteAsset'] == 'USDT' and symbol["status"] == "TRADING":
             perps.append(symbol['symbol'])
 
     data = {}
