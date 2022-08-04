@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 
 from cmath import nan
 
-from tqdm import tqdm
-
 import altair as alt
 
 from backend import CointegrationAnalysis, StationaryTest
@@ -21,7 +19,7 @@ def plot_coint(close, interval):
     # print(price.columns)
 
     plot_df = pd.DataFrame(index=coins)
-    # for i in tqdm(range(len(coins)), desc='Calculating...', ncols=75, leave=True, position=0):
+    # for i in range(len(coins)):
     for i in range(len(coins)):
         plist = [nan] * len(coins)
         for j in range(i + 1, len(coins)):
