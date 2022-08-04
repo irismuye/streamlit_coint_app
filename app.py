@@ -3,7 +3,7 @@ import time  # to simulate a real time data, time loop
 
 import streamlit as st  # 🎈 data web app development
 import os
-from screener import _filter_volume, plot_coint
+from screener import plot_coint
 
 
 
