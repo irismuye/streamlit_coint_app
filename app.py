@@ -102,19 +102,19 @@ def price():
         # fill in those three columns with respective metrics or KPIs
         kpi1.metric(
             label="BTCUSDT",
-            value=round(price[0]['lastPrice'], 2),
+            value=price[0]['lastPrice'][-7:],
             delta=str(price[0]['priceChangePercent']) + '%',
         )
 
         kpi2.metric(
             label="ETHUSDT",
-            value=round(price[1]['lastPrice'], 2),
+            value=round(price[1]['lastPrice'][-7:], 2),
             delta=str(price[1]['priceChangePercent']) + '%',
         )
 
         kpi3.metric(
             label="ADAUSDT",
-            value=round(price[2]['lastPrice'], 4),
+            value=price[2]['lastPrice'][-5:],
             delta=str(price[2]['priceChangePercent']) + '%',
         )
 
