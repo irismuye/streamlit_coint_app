@@ -19,3 +19,4 @@ unicorn_binance_websocket_api==1.41.0
 vega_datasets==0.9.0
 yfinance==0.1.74
 binance-futures-connector==3.1.1
+pytz==2022.1
