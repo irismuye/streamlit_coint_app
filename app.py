@@ -7,6 +7,7 @@ import datetime
 import pandas as pd
 import requests
 import json
+import pytz
 
 from binance.um_futures import UMFutures
 
