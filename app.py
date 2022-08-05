@@ -146,7 +146,7 @@ def refresh(rank):
             f2 = st.selectbox('Select Second Future:', df1[1])
 
 
-            csv = convert_df(df1[[f1, f2]])
+            csv = convert_df(df1[0][[f1, f2]])
 
             st.download_button(
                 label="Download data as EXCEL",
@@ -166,7 +166,7 @@ def refresh(rank):
             st.selectbox('Select First Future:', df5[1])
             st.selectbox('Select Second Future:', df5[1])
 
-            csv = convert_df(df5[[f1, f2]])
+            csv = convert_df(df5[0][[f1, f2]])
 
             st.download_button(
                 label="Download data as EXCEL",
