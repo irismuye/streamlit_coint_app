@@ -102,19 +102,19 @@ def price():
         # fill in those three columns with respective metrics or KPIs
         kpi1.metric(
             label="BTCUSDT",
-            value=price[0]['lastPrice'],
+            value=round(price[0]['lastPrice'], 2),
             delta=str(price[0]['priceChangePercent']) + '%',
         )
 
         kpi2.metric(
             label="ETHUSDT",
-            value=price[1]['lastPrice'],
+            value=round(price[1]['lastPrice'], 2),
             delta=str(price[1]['priceChangePercent']) + '%',
         )
 
         kpi3.metric(
             label="ADAUSDT",
-            value=price[2]['lastPrice'],
+            value=round(price[2]['lastPrice'], 4),
             delta=str(price[2]['priceChangePercent']) + '%',
         )
 
@@ -138,6 +138,7 @@ def refresh(rank):
         with fig_col2:
             st.markdown("### 5 Minute")
             fig2 = plot_coint(df5, '5m')
+
             st.markdown('Close Price at Server Time {}'.format(df5.index[-1].strftime("%Y-%m-%d %H:%M:%S")))
             # st.markdown("###### Updated {}".format(datetime.datetime.now()))
             st.write(fig2)
