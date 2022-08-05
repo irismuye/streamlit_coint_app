@@ -88,6 +88,10 @@ _rank = st.selectbox("Select the Volume Rank", range(10, 143))
 placeholder = st.empty()
 place = st.empty()
 
+def convert_df(df):
+     # IMPORTANT: Cache the conversion to prevent computation on every rerun
+     return df.to_excel().encode('utf-8')
+
 
 
 def price():
@@ -138,8 +142,18 @@ def refresh(rank):
             st.markdown('Close Price at Server Time {}'.format(df1[0].index[-1].strftime("%Y-%m-%d %H:%M:%S")))
             st.write(fig)
 
-            st.selectbox('Select First Future:', df1[1])
-            st.selectbox('Select Second Future:', df1[1])
+            f1 = st.selectbox('Select First Future:', df1[1])
+            f2 = st.selectbox('Select Second Future:', df1[1])
+
+
+            csv = convert_df(df1[[f1, f2]])
+
+            st.download_button(
+                label="Download data as EXCEL",
+                data=csv,
+                file_name='{}_{}.csv'.format(f1, f2),
+                mime='text/csv',
+                )
 
         with fig_col2:
             st.markdown("### 5 Minute")
@@ -151,6 +165,15 @@ def refresh(rank):
 
             st.selectbox('Select First Future:', df5[1])
             st.selectbox('Select Second Future:', df5[1])
+
+            csv = convert_df(df5[[f1, f2]])
+
+            st.download_button(
+                label="Download data as EXCEL",
+                data=csv,
+                file_name='{}_{}.csv'.format(f1, f2),
+                mime='text/csv',
+                )
 
         # st.markdown("### Detailed Data View")
         # st.dataframe(df)
