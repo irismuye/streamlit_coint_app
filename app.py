@@ -134,7 +134,7 @@ def price():
 
         st.session_state.prev_price = price
 
-        st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('US/Pacific')).strftime("%Y-%m-%d %H:%M:%S")))
+        st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('America/Chicago')).strftime("%Y-%m-%d %H:%M:%S")))
 
 
 def refresh(rank):
@@ -146,7 +146,7 @@ def refresh(rank):
         with fig_col1:
             st.markdown("### 1 Minute")
             fig = plot_coint(df1, '1m')
-            st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('US/Pacific')).strftime("%Y-%m-%d %H:%M:%S")))
+            st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('America/Chicago')).strftime("%Y-%m-%d %H:%M:%S")))
             st.write(fig)
 
         with fig_col2:
