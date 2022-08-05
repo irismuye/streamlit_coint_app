@@ -146,14 +146,14 @@ def refresh(rank):
             f2 = st.selectbox('Select Second Future:', df1[1])
 
 
-            csv = convert_df(df1[0][[f1, f2]])
+            # csv = convert_df(df1[0][[f1, f2]])
 
-            st.download_button(
-                label="Download data as EXCEL",
-                data=csv,
-                file_name='{}_{}.xlsx'.format(f1, f2),
-                mime='text/csv',
-                )
+            # st.download_button(
+            #     label="Download data as EXCEL",
+            #     data=csv,
+            #     file_name='{}_{}.xlsx'.format(f1, f2),
+            #     mime='text/xlsx',
+            #     )
 
         with fig_col2:
             st.markdown("### 5 Minute")
