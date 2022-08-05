@@ -151,7 +151,7 @@ def refresh(rank):
             st.download_button(
                 label="Download data as EXCEL",
                 data=csv,
-                file_name='{}_{}.csv'.format(f1, f2),
+                file_name='{}_{}.xlsx'.format(f1, f2),
                 mime='text/csv',
                 )
 
