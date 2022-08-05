@@ -152,7 +152,7 @@ def refresh(rank):
         with fig_col2:
             st.markdown("### 5 Minute")
             fig2 = plot_coint(df5, '5m')
-            st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('US/Pacific')).strftime("%Y-%m-%d %H:%M:%S")))
+            st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('America/Chicago')).strftime("%Y-%m-%d %H:%M:%S")))
             # st.markdown("###### Updated {}".format(datetime.datetime.now()))
             st.write(fig2)
 
