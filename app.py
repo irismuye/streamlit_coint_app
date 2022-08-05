@@ -73,7 +73,7 @@ def combine(interval, rank = 10):
 
     close_df = pd.DataFrame(close)
 
-    return close_df
+    return close_df, selected
 
 
 
@@ -125,9 +125,7 @@ def price():
 
 def refresh(rank):
     df1 = combine('1m', rank)
-
     df5 = combine('5m', rank)
-
     # st.balloons()
 
     with place.container():
@@ -135,24 +133,28 @@ def refresh(rank):
 
         with fig_col1:
             st.markdown("### 1 Minute")
-            fig = plot_coint(df1, '1m')
-            st.markdown('Close Price at Server Time {}'.format(df1.index[-1].strftime("%Y-%m-%d %H:%M:%S")))
+            fig = plot_coint(df1[0], '1m')
+            st.markdown('Close Price at Server Time {}'.format(df1[0].index[-1].strftime("%Y-%m-%d %H:%M:%S")))
             st.write(fig)
+
+            st.selectbox('Select First Future:', df1[1])
+            st.selectbox('Select Second Future:', df1[1])
 
         with fig_col2:
             st.markdown("### 5 Minute")
-            fig2 = plot_coint(df5, '5m')
+            fig2 = plot_coint(df5[0], '5m')
 
-            st.markdown('Close Price at Server Time {}'.format(df5.index[-1].strftime("%Y-%m-%d %H:%M:%S")))
+            st.markdown('Close Price at Server Time {}'.format(df5[0].index[-1].strftime("%Y-%m-%d %H:%M:%S")))
             # st.markdown("###### Updated {}".format(datetime.datetime.now()))
             st.write(fig2)
+
+            st.selectbox('Select First Future:', df5[1])
+            st.selectbox('Select Second Future:', df5[1])
 
         # st.markdown("### Detailed Data View")
         # st.dataframe(df)
         # time.sleep(1)
-
-
-
+        
 
 while True:
     price()
