@@ -30,13 +30,7 @@ symbols = exchange_info()
 root_url = 'https://api.binance.com/api/v1/klines'
 time_url = "https://api.binance.com/api/v3/time"
 
-p = ['BTCUSDT', 'ETHUSDT', 'ADAUSDT']
-
-price = []
-for i in p:
-    price.append(float(requests.get('https://api.binance.com/api/v3/ticker/price?symbol=' + i).json()['price']))
-
-st.session_state.prev_price = price
+url = 'https://api.binance.com/api/v3/ticker?symbols=%5B%22BTCUSDT%22,%22ETHUSDT%22,%22ADAUSDT%22%5D&windowSize=1m'
 
 
 # if there is no specification of limit in the url, then default the recent 500 entries
@@ -97,11 +91,8 @@ place = st.empty()
 
 
 def price():
-    p = ['BTCUSDT', 'ETHUSDT', 'ADAUSDT']
 
-    price = []
-    for i in p:
-        price.append(float(requests.get('https://api.binance.com/api/v3/ticker/price?symbol=' + i).json()['price']))
+    price = requests.get(url).json()
 
 
         # create three columns
@@ -111,31 +102,23 @@ def price():
         # fill in those three columns with respective metrics or KPIs
         kpi1.metric(
             label="BTCUSDT",
-            value=price[0],
-            delta=str(round((price[0] -
-                             st.session_state.prev_price[0])*100/
-                            st.session_state.prev_price[0], 2)) + '%',
+            value=price[0]['lastPrice'],
+            delta=str(price[0]['priceChangePercent']) + '%',
         )
 
         kpi2.metric(
             label="ETHUSDT",
-            value=price[1],
-            delta=str(round((price[1] -
-                             st.session_state.prev_price[1])*100/
-                            st.session_state.prev_price[1], 2)) + '%',
+            value=price[1]['lastPrice'],
+            delta=str(price[1]['priceChangePercent']) + '%',
         )
 
         kpi3.metric(
             label="ADAUSDT",
-            value=price[2],
-            delta=str(round((price[2] -
-                             st.session_state.prev_price[2])*100/
-                            st.session_state.prev_price[2], 2)) + '%',
+            value=price[2]['lastPrice'],
+            delta=str(price[2]['priceChangePercent']) + '%',
         )
 
-        st.session_state.prev_price = price
-        time_seconds = requests.get(time_url).json()['serverTime']
-        now_time = datetime.datetime.fromtimestamp(time_seconds / 1000.0)
+        now_time = datetime.datetime.fromtimestamp(price[0]['closeTime'] / 1000.0)
 
         st.markdown('Price at Server Time {}'.format(now_time.strftime("%Y-%m-%d %H:%M:%S")))
 
