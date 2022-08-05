@@ -137,7 +137,7 @@ def price():
         time_seconds = requests.get(time_url).json()['serverTime']
         now_time = datetime.datetime.fromtimestamp(time_seconds / 1000.0)
 
-        st.markdown('Price at Server Time {}'.format(now_time).strftime("%Y-%m-%d %H:%M:%S"))
+        st.markdown('Price at Server Time {}'.format(now_time.strftime("%Y-%m-%d %H:%M:%S")))
 
 
 def refresh(rank):
