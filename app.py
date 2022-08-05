@@ -127,6 +127,7 @@ def refresh(rank):
     df1 = combine('1m', rank)
     df5 = combine('5m', rank)
     # st.balloons()
+    st.session_state.load = True
 
     with place.container():
         fig_col1, fig_col2 = st.columns(2)
@@ -155,8 +156,9 @@ def refresh(rank):
         # st.dataframe(df)
         # time.sleep(1)
         
-
+st.session_state.load = True
 while True:
-    price()
-    refresh(int(_rank))
+    if st.session_state.load:
+        price()
+        refresh(int(_rank))
     # st.markdown("###### Updated {}".format(datetime.datetime.now()))
