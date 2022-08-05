@@ -108,7 +108,7 @@ def price():
 
         kpi2.metric(
             label="ETHUSDT",
-            value=round(price[1]['lastPrice'][-7:], 2),
+            value=price[1]['lastPrice'][-7:],
             delta=str(price[1]['priceChangePercent']) + '%',
         )
 
