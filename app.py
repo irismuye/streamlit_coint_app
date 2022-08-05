@@ -124,14 +124,12 @@ def price():
 
 
 def refresh(rank):
-    with st.spinner('Wait for it...'):
-        df1 = combine('1m', rank)
+    df1 = combine('1m', rank)
 
-    with st.spinner('Wait for it...'):
-        df5 = combine('5m', rank)
+    df5 = combine('5m', rank)
 
-    st.balloons()
-    
+    # st.balloons()
+
     with place.container():
         fig_col1, fig_col2 = st.columns(2)
 
