@@ -1,12 +1,7 @@
 import time  # to simulate a real time data, time loop
-
-
 import streamlit as st  # 🎈 data web app development
 import os
 from screener import plot_coint
-
-
-
 import datetime
 
 import pandas as pd
@@ -14,8 +9,6 @@ import requests
 import json
 
 from binance.um_futures import UMFutures
-
-
 
 st.set_page_config(
     page_title="Real-Time Data Science Dashboard",
@@ -140,7 +133,7 @@ def price():
 
         st.session_state.prev_price = price
 
-        st.markdown('Updated {}'.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        st.markdown('Updated {}'.format(datetime.datetime.now(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")))
 
 
 def refresh(rank):
@@ -152,13 +145,13 @@ def refresh(rank):
         with fig_col1:
             st.markdown("### 1 Minute")
             fig = plot_coint(df1, '1m')
-            st.markdown('Updated {}'.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            st.markdown('Updated {}'.format(datetime.datetime.now(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")))
             st.write(fig)
 
         with fig_col2:
             st.markdown("### 5 Minute")
             fig2 = plot_coint(df5, '5m')
-            st.markdown('Updated {}'.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            st.markdown('Updated {}'.format(datetime.datetime.now(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")))
             # st.markdown("###### Updated {}".format(datetime.datetime.now()))
             st.write(fig2)
 
