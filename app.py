@@ -13,7 +13,7 @@ import pandas as pd
 import requests
 import json
 
-# from binance.um_futures import UMFutures
+from binance.um_futures import UMFutures
 
 
 
@@ -25,7 +25,9 @@ st.set_page_config(
 
 @st.experimental_memo
 def exchange_info():
-    exchange_info = requests.get('https://api.binance.com/fapi/v1/exchangeInfo').json()
+    client = UMFutures()
+    exchange_info = client.exchange_info()
+#     exchange_info = requests.get('https://api.binance.com/fapi/v1/exchangeInfo').json()
     symbols = exchange_info["symbols"]
 
     return symbols
