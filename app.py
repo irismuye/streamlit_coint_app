@@ -28,6 +28,7 @@ def exchange_info():
 
 symbols = exchange_info()
 root_url = 'https://api.binance.com/api/v1/klines'
+time_url = "https://api.binance.com/api/v3/time"
 
 p = ['BTCUSDT', 'ETHUSDT', 'ADAUSDT']
 
@@ -133,12 +134,19 @@ def price():
         )
 
         st.session_state.prev_price = price
+        time_seconds = requests.get(time_url).json()['serverTime']
+        now_time = datetime.datetime.fromtimestamp(time_seconds / 1000.0)
 
-        st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('America/Chicago')).strftime("%Y-%m-%d %H:%M:%S")))
+        st.markdown('Price at Server Time {}'.format(now_time).strftime("%Y-%m-%d %H:%M:%S"))
 
 
 def refresh(rank):
+    time_seconds1 = requests.get(time_url).json()['serverTime']
+    now_time1 = datetime.datetime.fromtimestamp(time_seconds1 / 1000.0)
     df1 = combine('1m', rank)
+    
+    time_seconds2 = requests.get(time_url).json()['serverTime']
+    now_time2 = datetime.datetime.fromtimestamp(time_seconds2 / 1000.0)
     df5 = combine('5m', rank)
     with place.container():
         fig_col1, fig_col2 = st.columns(2)
@@ -146,13 +154,13 @@ def refresh(rank):
         with fig_col1:
             st.markdown("### 1 Minute")
             fig = plot_coint(df1, '1m')
-            st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('America/Chicago')).strftime("%Y-%m-%d %H:%M:%S")))
+            st.markdown('Close Price at Server Time {}'.format(now_time1.strftime("%Y-%m-%d %H:%M:%S")))
             st.write(fig)
 
         with fig_col2:
             st.markdown("### 5 Minute")
             fig2 = plot_coint(df5, '5m')
-            st.markdown('Updated {}'.format(datetime.datetime.now(pytz.timezone('America/Chicago')).strftime("%Y-%m-%d %H:%M:%S")))
+            st.markdown('Close Price at Server Time {}'.format(now_time2.strftime("%Y-%m-%d %H:%M:%S")))
             # st.markdown("###### Updated {}".format(datetime.datetime.now()))
             st.write(fig2)
 
