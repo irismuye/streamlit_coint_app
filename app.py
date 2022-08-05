@@ -166,14 +166,13 @@ def refresh(rank):
             st.selectbox('Select First Future:', df5[1])
             st.selectbox('Select Second Future:', df5[1])
 
-            csv = convert_df(df5[0][[f1, f2]])
+            # csv = convert_df(df5[0][[f1, f2]])
 
-            st.download_button(
-                label="Download data as EXCEL",
-                data=csv,
-                file_name='{}_{}.csv'.format(f1, f2),
-                mime='text/csv',
-                )
+            connect = st.button("Connect")
+
+            if connect:
+
+                st.session_state.close_price = df5[0][f1, f2]
 
         # st.markdown("### Detailed Data View")
         # st.dataframe(df)
