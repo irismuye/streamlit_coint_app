@@ -224,5 +224,5 @@ with st.sidebar:
 
 
 
-while True:
-    price()
+# while True:
+#     price()
