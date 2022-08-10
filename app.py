@@ -184,14 +184,14 @@ def freeze(f1, f5, df1, df5, fig1, fig2, interval1, interval2):
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("##### Cointegration Parameters for One Minute")
+        st.markdown(f"##### Cointegration Parameters for {format_func(interval1)}")
         st.dataframe(fitdf)
 
         csv_downloader(one_min_close, f'{interval1[:-1]}_min_close', f'{interval1[:-1]} Minute Close Price')
 
         csv_downloader(spreaddf, f'spread_{interval1[:-1]}_min', f'{interval1[:-1]} Minute Spread')
 
-        st.markdown("#### Cointegration Parameters for Five Minute")
+        st.markdown(f"#### Cointegration Parameters for {format_func(interval2)}")
 
         st.dataframe(fitdf_)
 
