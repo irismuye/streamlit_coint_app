@@ -8,15 +8,18 @@ import pandas as pd
 import requests
 import json
 import webbrowser
+from backend import CointegrationAnalysis
 
 from binance.um_futures import UMFutures
+import base64
 
 st.set_page_config(
     page_title="Real-Time Data Science Dashboard",
     page_icon="✅",
     layout="wide",
 )
-
+# dashboard title
+st.title("Real-time Crypto Dashboard")
 
 @st.experimental_memo
 def exchange_info():
@@ -34,38 +37,54 @@ def exchange_info():
 
 
 perps = exchange_info()
-global df1, df5
+global df1, df5, fig1, fig2
+test = CointegrationAnalysis()
 
 st.session_state.load = True
 root_url = 'https://api.binance.com/api/v1/klines'
 time_url = "https://api.binance.com/api/v3/time"
 
-url = 'https://api.binance.com/api/v3/ticker?symbols=%5B%22BTCUSDT%22,%22ETHUSDT%22,%22ADAUSDT%22%5D&windowSize=1m'
+
+bars = ["3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h",
+    "1d", "3d", "1w", "1M"]
+
+def format_func(bar):
+
+    if bar[-1] == 'm':
+        return bar[:-1] + ' Minutes'
+    elif bar[-1] == 'h':
+        return bar[:-1] + ' Hours'
+    elif bar[-1] == 'd':
+        return bar[:-1] + ' Days'
+    elif bar[-1] == 'w':
+        return bar[:-1] + ' Week'
+    else:
+        return '1 Month'
 
 
 # if there is no specification of limit in the url, then default the recent 500 entries
 # read csv from a URL
 
-def get_bars(symbol, interval='1m'):
-    url = root_url + '?symbol=' + symbol + '&interval=' + interval + '&limit=' + str(1000)
+def get_bars(symbol, interval='1m', limit = 1000):
+    url = root_url + '?symbol=' + symbol + '&interval=' + interval + '&limit=' + str(limit)
     data = json.loads(requests.get(url).text)
     df = pd.DataFrame(data)
     df.columns = ['open_time',
                   'open', 'high', 'low', 'close', 'volume',
                   'close_time', 'qav', 'num_trades',
                   'taker_base_vol', 'taker_quote_vol', 'ignore']
-    df.index = [datetime.datetime.fromtimestamp(x / 1000.0) for x in df.close_time]
+    df.index = [datetime.datetime.fromtimestamp(x / 1000.0).strftime("%Y/%m/%d %H:%M:%S") for x in df.close_time]
     return df
 
 
 # @st.cache(allow_output_mutation=True)
-def combine(interval, rank=10):
+def combine(interval, rank=10, limit = 1000):
 
     data = {}
     volume = {}
     for perp in perps:
         try:
-            data[perp] = get_bars(perp, interval)
+            data[perp] = get_bars(perp, interval, limit)
             volume[perp] = float(data[perp].iloc[-1, :].volume)
             # print(volume[perp])
 
@@ -82,9 +101,6 @@ def combine(interval, rank=10):
 
     return close_df, selected
 
-
-# dashboard title
-st.title("Real-Time / Live Crypto Dashboard")
 # top-level filters
 
 
@@ -95,134 +111,155 @@ place = st.empty()
 
 
 st.session_state.run = 0
+st.session_state.load = True
+st.session_state.submit = False
 
-def price():
-    price = requests.get(url).json()
 
-    # create three columns
-    with placeholder.container():
-        kpi1, kpi2, kpi3 = st.columns(3)
-
-        # fill in those three columns with respective metrics or KPIs
-        kpi1.metric(
-            label="BTCUSDT",
-            value=price[0]['lastPrice'][:-6],
-            delta=str(price[0]['priceChangePercent']) + '%',
-        )
-
-        kpi2.metric(
-            label="ETHUSDT",
-            value=price[1]['lastPrice'][:-6],
-            delta=str(price[1]['priceChangePercent']) + '%',
-        )
-
-        kpi3.metric(
-            label="ADAUSDT",
-            value=price[2]['lastPrice'][:-4],
-            delta=str(price[2]['priceChangePercent']) + '%',
-        )
-
-        now_time = datetime.datetime.fromtimestamp(price[0]['closeTime'] / 1000.0)
-
-        st.markdown('Price at Server Time {}'.format(now_time.strftime("%Y-%m-%d %H:%M:%S")))
-
-st.session_state.fig = [0, 0]
-
-def refresh(rank):
+def refresh(rank, interval1, interval2, limit1, limit2):
     # webbrowser.open("http://www.github.com")
-    global df1, df5
-    df1 = combine('1m', rank)
-    df5 = combine('5m', rank)
+    global df1, df5, fig1, fig2
+    df1 = combine(interval1, rank, limit1)
+    df5 = combine(interval2, rank, limit2)
 
+    if 'data' not in st.session_state:
+        st.session_state.data = [df1, df5]
     # st.balloons()
     st.session_state.load = True
-    st.session_state.data = [df1, df5]
 
-    st.session_state.fig[0] = plot_coint(df1[0], '1m')
-    st.session_state.fig[1] = plot_coint(df1[0], '5m')
+    fig1 = plot_coint(df1[0], interval1)
+    fig2 = plot_coint(df5[0], interval2)
+    st.session_state.fig = [fig1, fig2]
 
     if st.session_state.load:
         with place.container():
             fig_col1, fig_col2 = st.columns(2)
 
             with fig_col1:
-                st.markdown("### 1 Minute")
-                st.markdown('Close Price at Server Time {}'.format(df1[0].index[-1].strftime("%Y-%m-%d %H:%M:%S")))
-                if st.session_state.fig[0] != 0:
-                    st.write(st.session_state.fig[0])
+                st.markdown(f"### {format_func(interval1)}")
+                st.markdown('Close Price at Server Time {}'.format(df1[0].index[-1]))
+
+                st.write(fig1)
+
 
             with fig_col2:
 
                 if st.session_state.load:
-                    st.markdown("### 5 Minute")
+                    st.markdown(f"### {format_func(interval2)}")
 
-                    st.markdown('Close Price at Server Time {}'.format(df5[0].index[-1].strftime("%Y-%m-%d %H:%M:%S")))
+                    st.markdown('Close Price at Server Time {}'.format(df5[0].index[-1]))
                 # st.markdown("###### Updated {}".format(datetime.datetime.now()))
-                    if st.session_state.fig[1] != 0:
-                        st.write(st.session_state.fig[1])
 
+                    st.write(fig2)
+
+    # return df1, df5, fig1, fig2
 
             # csv = convert_df(df5[0][[f1, f2]])
 
-def freeze():
-    if len(f1) >= 2:
-        st.session_state.data[0][0][f1].to_csv('one_min.csv')
-    if len(f5) >= 2:
-        st.session_state.data[1][0][f5].to_csv('five_min.csv')
-    st.write('HEY!!!!!')
+
+def csv_downloader(data, filename, title):
+    csvfile = data.to_csv()
+    b64 = base64.b64encode(csvfile.encode()).decode()
+    new_filename = "{}_{}_.csv".format(filename, data.index[-1])
+    st.markdown(f"###### Download {title} ######")
+    href = f'<a href="data:file/csv;base64,{b64}" download="{new_filename}">Download {filename}</a>'
+    st.markdown(href, unsafe_allow_html=True)
+
+def freeze(f1, f5, df1, df5, fig1, fig2, interval1, interval2):
+    one_min_close = df1[0][f1]
+    fit = test.fit_eg(one_min_close, f1[0], f1[1],
+                        startDate=one_min_close.index[0],
+                        endDate=one_min_close.index[-1], plot = False)
+
+    fitdf = fit.fitdf
+    spreaddf = fit.spreaddf
+
+    five_min_close = df5[0][f5]
+    fit_ = test.fit_eg(five_min_close, f5[0], f5[1],
+                       startDate=five_min_close.index[0],
+                       endDate=five_min_close.index[-1], plot=False)
+
+    fitdf_ = fit_.fitdf
+    spreaddf_ = fit_.spreaddf
+
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("##### Cointegration Parameters for One Minute")
+        st.dataframe(fitdf)
+
+        csv_downloader(one_min_close, f'{interval1[:-1]}_min_close', f'{interval1[:-1]} Minute Close Price')
+
+        csv_downloader(spreaddf, f'spread_{interval1[:-1]}_min', f'{interval1[:-1]} Minute Spread')
+
+        st.markdown("#### Cointegration Parameters for Five Minute")
+
+        st.dataframe(fitdf_)
+
+        csv_downloader(five_min_close, f'{interval2[:-1]}_min_close', f'{interval2[:-1]} Minute Close Price')
+
+        csv_downloader(spreaddf_, f'spread_{interval2[:-1]}_min', f'{interval2[:-1]} Minute Spread')
+
+
+    with col2:
+        st.markdown(f"### {format_func(interval1)}")
+        st.markdown('Close Price at Server Time {}'.format(
+            one_min_close.index[-1]))
+        st.write(fig1)
+
+
+        st.markdown(f"### {format_func(interval2)}")
+        st.markdown('Close Price at Server Time {}'.format(
+            five_min_close.index[-1]))
+        # st.markdown("###### Updated {}".format(datetime.datetime.now()))
+        st.write(fig2)
+
+
+    # rolling = st.button("Rolling Window")
+    # rolling_ = st.button("Rolling Window")
+
 
 st.sidebar.title("Crypto Cointegration Analysis")
 with st.sidebar:
 
     if st.session_state.load:
-        _rank = st.selectbox("Select the Volume Rank", range(10, 143))
-        c1, c2 = st.columns(2)
-        with c1:
-            run_button = st.button("RUN")
+        f = st.form(key='params')
+        _rank = f.selectbox("Select the Volume Rank", range(10, 143))
+        interval1 = f.selectbox("Select the 1st Bar Length", bars, format_func=format_func, key = 'interval1')
+        limit1 = f.slider('Slide 1st Data Length', min_value=30, max_value=1000, step=10, key = 'limit1')
+        interval2 = f.selectbox("Select the 2nd Bar Length", bars, format_func=format_func, key = 'interval2')
+        limit2 = f.slider('Slide 2nd Data Length', min_value=30, max_value=1000, step=10, key = 'limit2')
 
-        if st.session_state.run >= 1:
-            with placeholder.container():
-                fig_col1, fig_col2 = st.columns(2)
-                with fig_col1:
-                    st.markdown("### 1 Minute")
-                    st.markdown('Close Price at Server Time {}'.format(
-                        st.session_state.data[0][0].index[-1].strftime("%Y-%m-%d %H:%M:%S")))
-                    if st.session_state.fig[0] != 0:
-                        st.write(st.session_state.fig[0])
 
-                with fig_col2:
-
-                    if st.session_state.load:
-                        st.markdown("### 5 Minute")
-
-                        st.markdown('Close Price at Server Time {}'.format(
-                            st.session_state.data[1][0].index[-1].strftime("%Y-%m-%d %H:%M:%S")))
-                        # st.markdown("###### Updated {}".format(datetime.datetime.now()))
-                        if st.session_state.fig[1] != 0:
-                            st.write(st.session_state.fig[1])
-
+        run_button = f.form_submit_button(label = "RUN")
         if run_button:
             with st.spinner('Running...'):
-                refresh(int(_rank))
-                st.session_state.run += 1
-
-        with c2:
-            st.button("FREEZE", on_click=freeze)
-
-
-        with st.form(key = "pairs"):
-
-            f1 = st.multiselect('Select Two Futures for 1-min Data:', perps)
-            f5 = st.multiselect('Select Two Futures for 5-min Data:', perps)
-
-            submit = st.form_submit_button(label='FREEZE', on_click=freeze)
+                refresh(int(_rank),
+                        st.session_state.interval1,
+                        st.session_state.interval2,
+                        st.session_state.limit1,
+                        st.session_state.limit2)
 
 
-        link = '[GitHub](http://www.github.com)'
+
+        # p = st.empty()
+
+        form = st.form(key="pairs")
+
+
+        f1 = form.multiselect(f'Select Two Futures for {format_func(interval1)} Data:', perps, key = 'p1')
+
+        # st.write(f1)
+        f5 = form.multiselect(f'Select Two Futures for {format_func(interval2)} Data:', perps, key = 'p5')
+                # st.write(f5)
+
+        # st.write(window)
+        submit = form.form_submit_button(label='FREEZE',
+                                         on_click=lambda: freeze(st.session_state.p1,
+                                                                 st.session_state.p5,
+                                                                 st.session_state.data[0], st.session_state.data[1],
+                                                                 st.session_state.fig[0], st.session_state.fig[1],
+                                                                 st.session_state.interval1, st.session_state.interval2))
+
+        link = '[GitHub](https://github.com/irismguo/streamlit_coint_app)'
         st.markdown(link, unsafe_allow_html=True)
 
-
-
-
-# while True:
-#     price()

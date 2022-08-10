@@ -2,8 +2,11 @@ import pandas as pd
 import numpy as np
 import os
 from datetime import datetime, timedelta
+from process_data import _extract_volume, _extract_close
 
 from cmath import nan
+
+from tqdm import tqdm
 
 import altair as alt
 
@@ -12,6 +15,19 @@ from backend import CointegrationAnalysis, StationaryTest
 from statsmodels.tsa.stattools import adfuller, coint
 
 
+def _filter_volume(path, rank=10):
+    file = os.listdir(path)[6]
+
+    file_path = path + '/' + file
+
+    vol = _extract_volume(file_path).iloc[-1, :]
+
+    selected = vol.sort_values(ascending=False)[:rank].index
+
+    close = _extract_close(file_path)[selected]
+
+    return close
+
 
 def plot_coint(close, interval):
     coins = close.columns
@@ -19,7 +35,7 @@ def plot_coint(close, interval):
     # print(price.columns)
 
     plot_df = pd.DataFrame(index=coins)
-    # for i in range(len(coins)):
+    # for i in tqdm(range(len(coins)), desc='Calculating...', ncols=75, leave=True, position=0):
     for i in range(len(coins)):
         plist = [nan] * len(coins)
         for j in range(i + 1, len(coins)):
