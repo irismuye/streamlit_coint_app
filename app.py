@@ -162,7 +162,7 @@ def refresh(rank, interval1, interval2, limit1, limit2):
 
             with fig_col1:
                 st.markdown(f"### {format_func(interval1)}")
-                st.markdown('Close Price at Server Time {}'.format(df1[0].index[-1]))
+                st.markdown('Last Close Time at Server Time {}'.format(df1[0].index[-1]))
 
                 st.write(fig1)
 
@@ -172,7 +172,7 @@ def refresh(rank, interval1, interval2, limit1, limit2):
                 if st.session_state.load:
                     st.markdown(f"### {format_func(interval2)}")
 
-                    st.markdown('Close Price at Server Time {}'.format(df5[0].index[-1]))
+                    st.markdown('Last Close Time at Server Time {}'.format(df5[0].index[-1]))
                 # st.markdown("###### Updated {}".format(datetime.datetime.now()))
 
                     st.write(fig2)
@@ -228,13 +228,13 @@ def freeze(f1, f5, df1, df5, fig1, fig2, interval1, interval2):
 
     with col2:
         st.markdown(f"### {format_func(interval1)}")
-        st.markdown('Close Price at Server Time {}'.format(
+        st.markdown('Last Close Time at Server Time {}'.format(
             one_min_close.index[-1]))
         st.write(fig1)
 
 
         st.markdown(f"### {format_func(interval2)}")
-        st.markdown('Close Price at Server Time {}'.format(
+        st.markdown('Last Close Time at Server Time {}'.format(
             five_min_close.index[-1]))
         # st.markdown("###### Updated {}".format(datetime.datetime.now()))
         st.write(fig2)
