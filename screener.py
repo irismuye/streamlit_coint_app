@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from datetime import datetime, timedelta
+from process_data import _extract_volume, _extract_close
 
 from cmath import nan
 
@@ -31,6 +32,7 @@ def _filter_volume(path, rank=10):
 def plot_coint(close, interval):
     coins = close.columns
     price = np.log(close).dropna()
+    print(price)
     # print(price.columns)
 
     plot_df = pd.DataFrame(index=coins)
@@ -41,7 +43,8 @@ def plot_coint(close, interval):
             test = StationaryTest()
             if test.is_OneOrder(price.iloc[:, [i, j]], dim='multiple'):
                 p = coint(price.iloc[:, i], price.iloc[:, j], trend='c', autolag='AIC')[1]
-                plist[j] = p
+                if p <= 0.05:
+                    plist[j] = p
 
         # print(plist)
         single = pd.DataFrame(index=coins, columns=[coins[i]], data=plist)
@@ -51,11 +54,11 @@ def plot_coint(close, interval):
     for coin in coins:
         plot_df.loc[coin, :] = plot_df.loc[:, coin]
 
-    # print(plot_df)
+    print(plot_df)
 
-    lmt = plot_df.reset_index().melt(id_vars='index', var_name='coin', value_name='p')
+    lmt = plot_df.reset_index().melt(id_vars='symbol', var_name='coin', value_name='p')
     # print(lmt)
-    chart = alt.Chart(lmt).mark_rect().encode(x='index:O', y='coin:O', tooltip=['index:O', 'coin:O', 'p:Q'],
+    chart = alt.Chart(lmt).mark_rect().encode(x='symbol:O', y='coin:O', tooltip=['symbol:O', 'coin:O', 'p:Q'],
                                               color=alt.Color("p:Q", scale=alt.Scale(scheme="magma"))
                                               ).properties(
         width=500,
@@ -63,7 +66,7 @@ def plot_coint(close, interval):
     )
 
     chart.interactive()
-    chart.save('screener_{}.html'.format(interval))
+    # chart.save('screener_{}.html'.format(interval))
 
     return chart
 

@@ -21,22 +21,8 @@ st.set_page_config(
 # dashboard title
 st.title("Real-time Crypto Dashboard")
 
-@st.experimental_memo
-def exchange_info():
-    client = UMFutures()
-    exchange_info = client.exchange_info()
-    #     exchange_info = requests.get('https://api.binance.com/fapi/v1/exchangeInfo').json()
-    symbols = exchange_info["symbols"]
-
-    perps = []
-    for symbol in symbols:
-        if symbol['contractType'] == 'PERPETUAL' and symbol['quoteAsset'] == 'USDT' and symbol["status"] == "TRADING":
-            perps.append(symbol['symbol'])
-
-    return perps
 
 
-perps = exchange_info()
 global df1, df5, fig1, fig2
 test = CointegrationAnalysis()
 
@@ -62,44 +48,83 @@ def format_func(bar):
         return '1 Month'
 
 
+@st.experimental_memo
+def exchange_info():
+    client = UMFutures()
+    exchange_info = client.exchange_info()
+    #     exchange_info = requests.get('https://api.binance.com/fapi/v1/exchangeInfo').json()
+    symbols = exchange_info["symbols"]
+
+    perps = []
+    for symbol in symbols:
+        if symbol['contractType'] == 'PERPETUAL' and symbol['quoteAsset'] == 'USDT' and symbol["status"] == "TRADING":
+            perps.append(symbol['symbol'])
+
+    return perps
+
+
+futures = exchange_info()
+
+
 # if there is no specification of limit in the url, then default the recent 500 entries
 # read csv from a URL
 
-def get_bars(symbol, interval='1m', limit = 1000):
+def get_bars(symbol, interval='1m', limit=1000):
+    root_url = 'https://api.binance.com/api/v1/klines'
     url = root_url + '?symbol=' + symbol + '&interval=' + interval + '&limit=' + str(limit)
     data = json.loads(requests.get(url).text)
-    df = pd.DataFrame(data)
-    df.columns = ['open_time',
-                  'open', 'high', 'low', 'close', 'volume',
-                  'close_time', 'qav', 'num_trades',
-                  'taker_base_vol', 'taker_quote_vol', 'ignore']
-    df.index = [datetime.datetime.fromtimestamp(x / 1000.0).strftime("%Y/%m/%d %H:%M:%S") for x in df.close_time]
-    return df
+    # df = pd.DataFrame(data)
+    keys = ['open_time',
+            'open', 'high', 'low', 'close', 'volume',
+            'close_time', 'qav', 'num_trades',
+            'taker_base_vol', 'taker_quote_vol', 'ignore']
+
+    res = []
+    for d in data:
+        dict1 = dict(zip(keys, d))
+        dict1['symbol'] = symbol
+        res.append(dict1)
+        # print(dict1)
+    # df.index = [datetime.datetime.fromtimestamp(x / 1000.0).strftime("%Y/%m/%d %H:%M:%S") for x in df.close_time]
+    return pd.DataFrame(res)
+
+
+def choose_volume(rank):
+    url = "https://api.binance.com/api/v3/ticker/24hr"
+    data = json.loads(requests.get(url).text)
+
+    volume = pd.DataFrame(data).set_index('symbol')[['volume']].astype(float).sort_values(ascending=False, by='volume')
+    volume = volume.loc[[x for x in volume.index if 'USDT' in x], :]
+    volume = volume.loc[[x for x in volume.index if x in futures], :]
+    selected = volume.index[:rank]
+
+    # data = data1 + data2 + data3 + data4
+    return selected.tolist()
+
 
 
 # @st.cache(allow_output_mutation=True)
-def combine(interval, rank=10, limit = 1000):
+def combine(interval, rank=10, limit=1000):
+    selected = choose_volume(rank)
 
-    data = {}
-    volume = {}
-    for perp in perps:
+    data = pd.DataFrame()
+    for perp in selected:
         try:
-            data[perp] = get_bars(perp, interval, limit)
-            volume[perp] = float(data[perp].iloc[-1, :].volume)
+            data = pd.concat([data, get_bars(perp, interval, limit)], axis=0, join='outer')
+            # volume[perp] = float(data[perp].iloc[-1, :].volume)
             # print(volume[perp])
 
         except:
             pass
 
-    selected = sorted(volume, key=volume.get, reverse=True)[:rank]
+    # selected = sorted(volume, key=volume.get, reverse=True)[:rank]
 
-    close = {}
-    for p in selected:
-        close[p] = data[p].close.astype(float)
+    # close_df = pd.DataFrame(data).set_index('close_time')[['close']]
+    temp = data.set_index('symbol')[['close', 'close_time']].reset_index()
+    close = temp.pivot(index='close_time', columns='symbol', values='close')
+    close.index = [datetime.datetime.fromtimestamp(x / 1000.0).strftime("%Y/%m/%d %H:%M:%S") for x in close.index]
 
-    close_df = pd.DataFrame(close)
-
-    return close_df, selected
+    return close.astype(float), selected
 
 # top-level filters
 
@@ -115,14 +140,15 @@ st.session_state.load = True
 st.session_state.submit = False
 
 
+
 def refresh(rank, interval1, interval2, limit1, limit2):
     # webbrowser.open("http://www.github.com")
     global df1, df5, fig1, fig2
     df1 = combine(interval1, rank, limit1)
     df5 = combine(interval2, rank, limit2)
 
-    if 'data' not in st.session_state:
-        st.session_state.data = [df1, df5]
+
+    st.session_state.data = [df1, df5]
     # st.balloons()
     st.session_state.load = True
 
@@ -184,14 +210,14 @@ def freeze(f1, f5, df1, df5, fig1, fig2, interval1, interval2):
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(f"##### Cointegration Parameters for {format_func(interval1)}")
+        st.markdown("##### Cointegration Parameters for One Minute")
         st.dataframe(fitdf)
 
         csv_downloader(one_min_close, f'{interval1[:-1]}_min_close', f'{interval1[:-1]} Minute Close Price')
 
         csv_downloader(spreaddf, f'spread_{interval1[:-1]}_min', f'{interval1[:-1]} Minute Spread')
 
-        st.markdown(f"#### Cointegration Parameters for {format_func(interval2)}")
+        st.markdown("#### Cointegration Parameters for Five Minute")
 
         st.dataframe(fitdf_)
 
@@ -224,6 +250,7 @@ with st.sidebar:
     if st.session_state.load:
         f = st.form(key='params')
         _rank = f.selectbox("Select the Volume Rank", range(10, 143))
+        perps = choose_volume(int(_rank))
         interval1 = f.selectbox("Select the 1st Bar Length", bars, format_func=format_func, key = 'interval1')
         limit1 = f.slider('Slide 1st Data Length', min_value=30, max_value=1000, step=10, key = 'limit1')
         interval2 = f.selectbox("Select the 2nd Bar Length", bars, format_func=format_func, key = 'interval2')
